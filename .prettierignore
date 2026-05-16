@@ -1,0 +1,9 @@
+node_modules/
+dist/
+site/
+coverage/
+.claude/worktrees/
+public/
+*.min.js
+*.min.css
+package-lock.json
