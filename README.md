@@ -1,73 +1,30 @@
-# React + TypeScript + Vite
+# Splendor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Browser-based implementation of Splendor (Marvel edition) with progressively smarter AI opponents. Built as a learning vehicle for board-game AI techniques — random → greedy → MCTS.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Frontend:** Vite + React + TypeScript (no backend)
+- **Hosting:** GitHub Pages at https://jaetill.github.io/splendor
+- **AI:** All logic runs in-browser
 
-## React Compiler
+## Architecture rule
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+`src/game/` and `src/ai/` must never import from React or any UI library. Keeps AI logic testable and portable. UI integration lives in `src/components/` and `src/hooks/`.
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+npm install --legacy-peer-deps   # Vite 8 + Tailwind 4 peer-range workaround if Tailwind ever lands
+npm run dev                       # http://localhost:5173
+npm run build                     # tsc -b && vite build
+npm run lint                      # eslint .
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Deploy
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+GitHub Pages, auto-deployed on push to `main` via `.github/workflows/deploy.yml`. The Pages source must be set to GitHub Actions in repo Settings.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Platform inheritance
+
+Subscribes to the [Agentic Dev Environment](https://github.com/jaetill/agentic-dev-environment) platform per [ADR-0001](docs/adr/0001-platform-adoption.md). The platform ships the `ai-team` plugin (agents, commands, hooks, skills); this project carries only the marketplace subscription, the permissions block, and its own deviations.
