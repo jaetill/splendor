@@ -53,3 +53,18 @@ They are pure TypeScript — this keeps AI logic testable and portable.
 - GitHub repo: jaetill/splendor
 - GitHub Pages: auto-deploys on push to main via Actions
 - Enable Pages in repo Settings → Pages → Source: GitHub Actions
+
+
+---
+
+## Platform inheritance
+
+This project adopts the [Agentic Dev Environment](https://github.com/jaetill/agentic-dev-environment) platform per [ADR-0001](docs/adr/0001-platform-adoption.md). The platform's 11 standards (in [`docs/standards/`](https://github.com/jaetill/agentic-dev-environment/tree/main/docs/standards) of the workspace repo) define how this project is operated. TypeScript-specific deviations are documented in ADR-0001.
+
+### AI configuration
+
+The platform's subagents, slash commands, and hooks are delivered via the `ai-team` plugin subscription (per workspace ADR-0015). `.claude/settings.json` retains only the plugin subscription (`enabledPlugins`), the permissions block, and `extraKnownMarketplaces` pointing at the workspace's GitHub source. Hook scripts, agent definitions, and commands are NOT committed locally — they ship via the plugin.
+
+### Finding lifecycle (per workspace ADR-0016)
+
+Reviewer agents calibrate severity (don't over-escalate), low/nit findings get `deferred-until-adjacent` label and bundle into the next adjacent PR, Sentry-bug + critical issues auto-trigger the implementer. See workspace ADR-0016 for the full policy.
