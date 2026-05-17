@@ -5,4 +5,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/splendor/',
+  build: {
+    // Emit source maps so Sentry can deobfuscate. deploy.yml uploads them and
+    // strips from dist/ before publishing to GitHub Pages.
+    sourcemap: true,
+  },
 })
