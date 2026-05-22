@@ -25,6 +25,11 @@ function totalGems(gems: GemSupply): number {
   return Object.values(gems).reduce((a, b) => a + b, 0);
 }
 
+/** Tokens that count toward the 10-token limit (the green Time Stone is exempt). */
+function nonGreenCount(player: Player): number {
+  return totalGems(player.gems) - player.gems.green;
+}
+
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -275,16 +280,14 @@ export function isLegalMove(state: GameState, move: Move): boolean {
       // Can only take fewer than 3 if fewer than 3 regular colors are available
       const availableColors = REGULAR_GEMS.filter((g) => bank[g] >= 1);
       if (gems.length < Math.min(3, availableColors.length)) return false;
-      // 10-gem limit (green tokens can't be returned so we hard-cap here)
-      const nonGreen = totalGems(player.gems) - (player.hasGreenToken ? 1 : 0);
-      if (nonGreen + gems.length > 10) return false;
+      // 10-gem limit (green Time Stone is exempt)
+      if (nonGreenCount(player) + gems.length > 10) return false;
       return true;
     }
 
     case 'take2': {
       if (bank[move.gem] < 4) return false;
-      const nonGreen = totalGems(player.gems) - (player.hasGreenToken ? 1 : 0);
-      if (nonGreen + 2 > 10) return false;
+      if (nonGreenCount(player) + 2 > 10) return false;
       return true;
     }
 
@@ -351,7 +354,8 @@ export function applyMove(state: GameState, move: Move): GameState {
         next.board[tier].push(next.decks[tier].shift()!);
       }
       player.reserved.push(move.card);
-      if (next.gems.gray > 0) {
+      // Gold (gray) joker only if it won't push the player past the 10-token cap.
+      if (next.gems.gray > 0 && nonGreenCount(player) < 10) {
         player.gems.gray++;
         next.gems.gray--;
       }
@@ -362,7 +366,7 @@ export function applyMove(state: GameState, move: Move): GameState {
       const tier = `tier${move.tier}` as 'tier1' | 'tier2' | 'tier3';
       const card = next.decks[tier].shift()!;
       player.reserved.push(card);
-      if (next.gems.gray > 0) {
+      if (next.gems.gray > 0 && nonGreenCount(player) < 10) {
         player.gems.gray++;
         next.gems.gray--;
       }
@@ -400,6 +404,7 @@ export function applyMove(state: GameState, move: Move): GameState {
       // Time Stone: first tier-3 card grants a green token
       if (card.tier === 3 && !player.hasGreenToken && next.gems.green > 0) {
         player.hasGreenToken = true;
+        player.gems.green++;
         next.gems.green--;
       }
 

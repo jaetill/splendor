@@ -286,6 +286,17 @@ describe('applyMove — reserve', () => {
     expect(after.players[0].gems.gray).toBe(0);
   });
 
+  it('reserveBoard skips the gray grant when the player is already at the 10-token cap', () => {
+    const target = card({ id: 'target', tier: 1 });
+    const before = state({
+      board: { tier1: [target], tier2: [], tier3: [] },
+      players: [player({ gems: gems({ orange: 5, purple: 5 }) }), player()], // 10 non-green tokens
+    });
+    const after = applyMove(before, { type: 'reserveBoard', card: target });
+    expect(after.players[0].gems.gray).toBe(0); // no 11th token
+    expect(after.players[0].reserved).toHaveLength(1); // reservation still happens
+  });
+
   it('reserveDeck pulls the top of the deck into the hand', () => {
     const top = card({ id: 'top', tier: 2 });
     const second = card({ id: 'second', tier: 2 });
@@ -340,7 +351,8 @@ describe('applyMove — recruit', () => {
     const before = state({ board: { tier1: [], tier2: [], tier3: [target] } });
     const after = applyMove(before, { type: 'recruit', card: target });
     expect(after.players[0].hasGreenToken).toBe(true);
-    expect(after.gems.green).toBe(1);
+    expect(after.players[0].gems.green).toBe(1); // token actually lands in the player's pile
+    expect(after.gems.green).toBe(1); // and leaves the bank — total conserved
   });
 
   it('does not grant a second green token on a later tier-3 recruit', () => {
@@ -474,6 +486,22 @@ describe('phase transitions', () => {
       currentPlayer: 1,
       players: [fullyEquippedPlayer(16), fullyEquippedPlayer(16)],
       avengersAssembleTile: 1, // worth +3 to player 1
+    });
+    const after = applyMove(s, { type: 'pass' });
+    expect(after.winner).toBe(1);
+  });
+
+  it('breaks a full tie (equal points, no tile) by fewest recruited cards', () => {
+    const c = (id: string): Card => card({ id, tier: 1 });
+    const s = state({
+      phase: 'lastRound',
+      lastRoundTriggerPlayer: 0,
+      currentPlayer: 1,
+      players: [
+        fullyEquippedPlayer(16, { recruited: [c('a'), c('b'), c('c')] }),
+        fullyEquippedPlayer(16, { recruited: [c('d'), c('e')] }), // fewer cards → wins
+      ],
+      avengersAssembleTile: null,
     });
     const after = applyMove(s, { type: 'pass' });
     expect(after.winner).toBe(1);
