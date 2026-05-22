@@ -6,6 +6,7 @@ import CardDisplay from './CardDisplay';
 interface PlayerPanelProps {
   game: GameState;
   playerIndex: number;
+  name: string;
   isCurrentPlayer: boolean;
   onSelectReservedCard?: (card: import('../game/types').Card) => void;
 }
@@ -17,6 +18,7 @@ function effectivePoints(game: GameState, playerIndex: number): number {
 export default function PlayerPanel({
   game,
   playerIndex,
+  name,
   isCurrentPlayer,
   onSelectReservedCard,
 }: PlayerPanelProps) {
@@ -26,7 +28,7 @@ export default function PlayerPanel({
   return (
     <div className={`player-panel ${isCurrentPlayer ? 'player-panel--active' : ''}`}>
       <div className="player-panel__header">
-        <span className="player-panel__name">Player {playerIndex + 1}</span>
+        <span className="player-panel__name">{name}</span>
         <span className="player-panel__points">{ep} pts</span>
         {game.avengersAssembleTile === playerIndex && (
           <span className="player-panel__badge" title="Avengers Assemble">

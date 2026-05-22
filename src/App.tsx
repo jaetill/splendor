@@ -7,7 +7,7 @@ import PlayerPanel from './components/PlayerPanel';
 import { logout } from './auth/auth';
 import './App.css';
 
-function SetupScreen({ onStart }: { onStart: (n: number) => void }) {
+function SetupScreen({ onStart }: { onStart: (humans: number, bots: number) => void }) {
   return (
     <div className="setup">
       <a className="apps-link" href="https://jaetill.com/">
@@ -15,23 +15,51 @@ function SetupScreen({ onStart }: { onStart: (n: number) => void }) {
       </a>
       <h1 className="setup__title">Splendor</h1>
       <p className="setup__subtitle">Marvel Edition</p>
-      <div className="setup__options">
-        {[2, 3, 4].map((n) => (
-          <button key={n} className="btn btn--primary btn--large" onClick={() => onStart(n)}>
-            {n} Players
-          </button>
-        ))}
+
+      <div className="setup__group">
+        <span className="setup__group-label">Play vs. bots</span>
+        <div className="setup__options">
+          {[1, 2, 3].map((bots) => (
+            <button
+              key={bots}
+              className="btn btn--primary btn--large"
+              onClick={() => onStart(1, bots)}
+            >
+              {bots} Bot{bots > 1 ? 's' : ''}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="setup__group">
+        <span className="setup__group-label">Pass &amp; play (all human)</span>
+        <div className="setup__options">
+          {[2, 3, 4].map((n) => (
+            <button key={n} className="btn btn--secondary btn--large" onClick={() => onStart(n, 0)}>
+              {n} Players
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
 export default function App() {
-  const { game, action, actions } = useGame();
+  const { game, action, aiPlayers, isHumanTurn, actions } = useGame();
 
   if (!game) {
     return <SetupScreen onStart={actions.startGame} />;
   }
+
+  const humanCount = game.players.length - aiPlayers.length;
+  const playerName = (i: number): string => {
+    const botIdx = aiPlayers.indexOf(i);
+    if (botIdx >= 0) return `Bot ${botIdx + 1}`;
+    return humanCount === 1 ? 'You' : `Player ${i + 1}`;
+  };
+
+  const waiting = game.phase !== 'ended' && !isHumanTurn;
 
   return (
     <div className="game">
@@ -42,10 +70,16 @@ export default function App() {
         </a>
         <h1 className="game__title">Splendor</h1>
         {game.phase === 'ended' ? (
-          <span className="game__status game__status--ended">Player {game.winner! + 1} wins!</span>
+          <span className="game__status game__status--ended">
+            {playerName(game.winner!) === 'You' ? 'You win!' : `${playerName(game.winner!)} wins!`}
+          </span>
         ) : (
           <span className="game__status">
-            Player {game.currentPlayer + 1}'s turn
+            {(() => {
+              const name = playerName(game.currentPlayer);
+              if (!isHumanTurn) return `${name} is thinking…`;
+              return name === 'You' ? 'Your turn' : `${name}'s turn`;
+            })()}
             {game.phase === 'lastRound' && ' (last round)'}
           </span>
         )}
@@ -65,14 +99,15 @@ export default function App() {
               key={i}
               game={game}
               playerIndex={i}
+              name={playerName(i)}
               isCurrentPlayer={i === game.currentPlayer && game.phase !== 'ended'}
-              onSelectReservedCard={actions.selectCard}
+              onSelectReservedCard={isHumanTurn ? actions.selectCard : undefined}
             />
           ))}
         </aside>
 
-        {/* Center: board */}
-        <main className="game__board">
+        {/* Center: board — locked while a bot is taking its turn */}
+        <main className={`game__board ${waiting ? 'game__board--waiting' : ''}`}>
           <LocationRow locations={game.locations} />
           <CardGrid
             game={game}
@@ -87,7 +122,7 @@ export default function App() {
             onConfirm={actions.confirmTakeGems}
             onCancel={actions.cancelAction}
           />
-          {game.phase !== 'ended' && action.type === 'idle' && (
+          {isHumanTurn && action.type === 'idle' && (
             <div className="game__pass">
               <button className="btn btn--ghost" onClick={actions.pass}>
                 Pass

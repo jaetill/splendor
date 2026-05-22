@@ -112,6 +112,22 @@ body {
   gap: 16px;
 }
 
+.setup__group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.setup__group-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
 /* ── Game layout ──────────────────────────────────────────────────────────── */
 
 .game {
@@ -182,6 +198,12 @@ body {
   flex-direction: column;
   gap: 16px;
   overflow-y: auto;
+}
+
+/* While a bot takes its turn, the board is read-only. */
+.game__board--waiting {
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 .game__pass {
