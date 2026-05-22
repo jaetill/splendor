@@ -8,8 +8,23 @@ Primary goal: learn board game AI techniques by building them — random → gre
 ## Tech stack
 
 - **Frontend**: Vite + React + TypeScript
-- **Hosting**: GitHub Pages (jaetill.github.io/splendor)
-- **AI**: Runs entirely in the browser — no backend
+- **Hosting**: S3 + CloudFront at **https://splendor.jaetill.com** (OIDC deploy on push to `main`)
+- **Auth**: Cognito Hosted UI (Authorization Code + PKCE), hand-rolled in `src/auth/` — gates on **authentication only** (any pool user; no group required, unlike the sibling apps)
+- **AI**: Runs entirely in the browser — no backend, no game data persisted
+
+## AWS resources
+
+| Resource           | ID / value                                         | Region    | Notes                                                                             |
+| ------------------ | -------------------------------------------------- | --------- | --------------------------------------------------------------------------------- |
+| S3 bucket          | `jaetill-splendor`                                 | us-east-2 | Public access blocked; CloudFront OAC only                                        |
+| CloudFront         | `E15CORI71INNUD` (`d3k83v0212smxz.cloudfront.net`) | global    | Alias `splendor.jaetill.com`; SPA fallback 403/404→`/index.html`                  |
+| CloudFront OAC     | `E2QLHBKB31O58U` (`jaetill-splendor-oac`)          | global    | Locks bucket reads to this distribution                                           |
+| ACM cert           | `*.jaetill.com` (`...e0222a7e...`)                 | us-east-1 | Shared wildcard — covers the subdomain                                            |
+| OIDC deploy role   | `splendor-github-deploy`                           | —         | Trust `repo:jaetill/splendor:ref:refs/heads/main`; S3 + `CreateInvalidation` only |
+| Cognito pool       | `us-east-2_xneeJzaDJ`                              | us-east-2 | **Shared** with the other apps                                                    |
+| Cognito App Client | `4o3dja4seo8or2q3i33v9hc02s` (`splendor-web`)      | us-east-2 | Public PKCE client; no group gate                                                 |
+| Cognito branding   | `7a6f6b2d-513f-422d-8a62-3d81bb2a97a8`             | us-east-2 | Required for Hosted UI to render                                                  |
+| Route 53           | A/AAAA alias `splendor.jaetill.com` → CloudFront   | global    | Alias zone `Z2FDTNDATAQYW2`                                                       |
 
 ## Source structure
 
@@ -71,11 +86,20 @@ This is a custom Marvel-themed variant, **not** base Splendor. Where they differ
 
 **Win condition (Infinity Gauntlet):** the endgame triggers when a player reaches **16+ effective points AND holds the green Time Stone AND owns ≥1 bonus of each of the 5 regular stones**. Effective points = card points + location points + 3 if holding the Avengers tile. Play continues until the round completes (every player gets equal turns), then the winner is the eligible player with the most effective points, tie-broken by: holds the Avengers tile → fewest recruited cards.
 
+## Auth
+
+- Two HTML entries: `index.html` (game) and `callback.html` (OAuth redirect target).
+- `src/auth/config.ts` — Cognito client config (non-secret); prod origin is hardcoded `https://splendor.jaetill.com`, dev uses `window.location.origin`.
+- `src/auth/auth.ts` — PKCE flow (`sp.*` localStorage keys), ported from the sibling apps.
+- `src/main.tsx` — entry gate: if `!isAuthenticated()`, redirect to Hosted UI; else render the game. **Authentication only — no `cognito:groups` check.**
+- SSO: a signed-in portal user reaches splendor with no second prompt (shared Hosted UI session at `just.jaetill.com`). A direct visitor without a session gets the login page.
+- Local dev runs at `localhost:5173` or `5300` (both registered as callback URLs). `127.0.0.1` is **not** registered — use `localhost`.
+
 ## Deployment
 
-- GitHub repo: jaetill/splendor
-- GitHub Pages: auto-deploys on push to main via Actions
-- Enable Pages in repo Settings → Pages → Source: GitHub Actions
+- GitHub repo: jaetill/splendor; `deploy.yml` runs on push to `main`.
+- Build → upload source maps to Sentry → strip maps from `dist/` → assume `splendor-github-deploy` via OIDC → `s3 sync` (hashed assets `immutable`, HTML `no-cache`, **no `--delete`**) → CloudFront invalidation on `/index.html` + `/callback.html`.
+- Distribution id `E15CORI71INNUD` is hardcoded in the workflow (non-secret). Only `AWS_ROLE_ARN` is a GitHub secret.
 
 ---
 

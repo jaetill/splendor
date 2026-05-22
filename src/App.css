@@ -120,6 +120,17 @@ body {
   min-height: 100vh;
 }
 
+.apps-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.apps-link:hover {
+  color: var(--text);
+}
+
 .game__header {
   display: flex;
   align-items: center;

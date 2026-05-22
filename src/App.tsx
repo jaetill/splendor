@@ -4,11 +4,15 @@ import CardGrid from './components/CardGrid';
 import CardActionModal from './components/CardActionModal';
 import LocationRow from './components/LocationRow';
 import PlayerPanel from './components/PlayerPanel';
+import { logout } from './auth/auth';
 import './App.css';
 
 function SetupScreen({ onStart }: { onStart: (n: number) => void }) {
   return (
     <div className="setup">
+      <a className="apps-link" href="https://jaetill.com/">
+        ← Apps
+      </a>
       <h1 className="setup__title">Splendor</h1>
       <p className="setup__subtitle">Marvel Edition</p>
       <div className="setup__options">
@@ -33,6 +37,9 @@ export default function App() {
     <div className="game">
       {/* Status bar */}
       <header className="game__header">
+        <a className="apps-link" href="https://jaetill.com/">
+          ← Apps
+        </a>
         <h1 className="game__title">Splendor</h1>
         {game.phase === 'ended' ? (
           <span className="game__status game__status--ended">Player {game.winner! + 1} wins!</span>
@@ -44,6 +51,9 @@ export default function App() {
         )}
         <button className="btn btn--ghost" onClick={actions.resetToSetup}>
           New Game
+        </button>
+        <button className="btn btn--ghost" onClick={logout}>
+          Sign out
         </button>
       </header>
 
