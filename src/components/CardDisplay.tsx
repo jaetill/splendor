@@ -6,6 +6,8 @@ interface CardDisplayProps {
   card: Card;
   onClick?: () => void;
   highlight?: boolean;
+  /** Current player can afford to recruit this card right now. */
+  affordable?: boolean;
   compact?: boolean;
 }
 
@@ -16,14 +18,21 @@ function formatName(id: string): string {
     .join(' ');
 }
 
-export default function CardDisplay({ card, onClick, highlight, compact }: CardDisplayProps) {
+export default function CardDisplay({
+  card,
+  onClick,
+  highlight,
+  affordable,
+  compact,
+}: CardDisplayProps) {
   const costEntries = REGULAR_GEMS.filter((g) => (card.cost[g] ?? 0) > 0);
 
   return (
     <button
-      className={`card card--tier${card.tier} ${highlight ? 'card--highlight' : ''} ${compact ? 'card--compact' : ''}`}
+      className={`card card--tier${card.tier} ${highlight ? 'card--highlight' : ''} ${affordable ? 'card--affordable' : ''} ${compact ? 'card--compact' : ''}`}
       onClick={onClick}
       disabled={!onClick}
+      title={affordable ? 'You can afford this' : undefined}
     >
       <div className="card__header">
         {card.points > 0 && <span className="card__points">{card.points}</span>}

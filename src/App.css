@@ -356,6 +356,12 @@ body {
   box-shadow: 0 0 12px rgba(233, 69, 96, 0.4);
 }
 
+/* Current player can afford this card right now. */
+.card--affordable {
+  border-color: #2ecc71;
+  box-shadow: 0 0 9px rgba(46, 204, 113, 0.5);
+}
+
 .card--empty {
   border-style: dashed;
   opacity: 0.2;
@@ -551,6 +557,60 @@ body {
 .player-panel__badge--green {
   background: rgba(46, 204, 113, 0.2);
   color: #2ecc71;
+}
+
+/* Avengers tag count — shown for every player; filled when they hold the tile. */
+.player-panel__avengers {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(233, 69, 96, 0.12);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.player-panel__avengers--holder {
+  background: var(--accent);
+  color: #fff;
+}
+
+.player-panel__section {
+  margin-top: 6px;
+}
+
+.player-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 5px 1px 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.8rem;
+}
+
+.chip--dim {
+  opacity: 0.35;
+}
+
+.chip__dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.chip__count {
+  font-weight: 700;
+  min-width: 7px;
+  text-align: center;
 }
 
 .player-panel__gems {

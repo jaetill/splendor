@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Card, GameState, Move, RegularGem } from '../game/types';
 import { applyMove, createGame, isLegalMove } from '../game/engine';
 import { getLegalMoves } from '../game/moves';
@@ -39,6 +39,8 @@ export interface UseGameReturn {
   aiPlayers: readonly number[];
   /** True when the current player is human and the game is still going. */
   isHumanTurn: boolean;
+  /** Ids of board/reserved cards the current human player can recruit right now. */
+  affordableCardIds: ReadonlySet<string>;
   actions: GameActions;
   moveLog: Move[];
 }
@@ -52,6 +54,24 @@ export function useGame(): UseGameReturn {
   const legalMoves = game && game.phase !== 'ended' ? getLegalMoves(game) : [];
   const isAITurn = !!game && game.phase !== 'ended' && aiPlayers.includes(game.currentPlayer);
   const isHumanTurn = !!game && game.phase !== 'ended' && !isAITurn;
+
+  // Cards the current (human) player could recruit this turn — used to highlight
+  // affordable cards on the board and in hand.
+  const affordableCardIds = useMemo<ReadonlySet<string>>(() => {
+    const ids = new Set<string>();
+    if (!game || !isHumanTurn) return ids;
+    const me = game.players[game.currentPlayer];
+    const candidates = [
+      ...game.board.tier1,
+      ...game.board.tier2,
+      ...game.board.tier3,
+      ...me.reserved,
+    ];
+    for (const card of candidates) {
+      if (isLegalMove(game, { type: 'recruit', card })) ids.add(card.id);
+    }
+    return ids;
+  }, [game, isHumanTurn]);
 
   const doMove = useCallback((state: GameState, move: Move): GameState => {
     const next = applyMove(state, move);
@@ -84,37 +104,44 @@ export function useGame(): UseGameReturn {
     setMoveLog([]);
   }, []);
 
+  // Gem clicks build either a take-3 (up to 3 distinct colors) or a take-2 (the
+  // same color twice). Clicking a single-selected color a second time promotes
+  // it to a take-2 (if the bank has 4+); clicking it again clears it.
   const selectGem = useCallback(
     (gem: RegularGem) => {
-      if (!isHumanTurn) return;
+      if (!game || !isHumanTurn) return;
+      const bank = game.gems;
       setAction((prev) => {
         const selected = prev.type === 'selectingGems' ? [...prev.selected] : [];
+        const isTake2 = selected.length === 2 && selected[0] === selected[1];
 
-        // Toggle: if already selected, remove it
-        const idx = selected.indexOf(gem);
-        if (idx >= 0) {
-          selected.splice(idx, 1);
-          return selected.length === 0 ? { type: 'idle' } : { type: 'selectingGems', selected };
+        // A take-2 is staged: clicking the same color clears it, another color resets.
+        if (isTake2) {
+          if (selected[0] === gem) return { type: 'idle' };
+          return bank[gem] >= 1 ? { type: 'selectingGems', selected: [gem] } : prev;
         }
 
-        // Add gem — max 3 distinct or 2 of same
-        selected.push(gem);
+        const alreadyPicked = selected.includes(gem);
 
-        // If player selected 2 of the same gem, that's a take2 — lock it
-        if (selected.length === 2 && selected[0] === selected[1]) {
-          return { type: 'selectingGems', selected };
+        // Single color picked, clicked again → promote to take-2 if the bank allows it.
+        if (alreadyPicked && selected.length === 1) {
+          return bank[gem] >= 4
+            ? { type: 'selectingGems', selected: [gem, gem] }
+            : { type: 'idle' };
         }
 
-        // Cap at 3 distinct
-        if (selected.length > 3) return prev;
+        // Picked among several → clicking removes it.
+        if (alreadyPicked) {
+          const next = selected.filter((g) => g !== gem);
+          return next.length === 0 ? { type: 'idle' } : { type: 'selectingGems', selected: next };
+        }
 
-        // Ensure all distinct for take3
-        if (new Set(selected).size !== selected.length) return prev;
-
-        return { type: 'selectingGems', selected };
+        // New color → add it to a take-3 (max 3 distinct), only if it's in the bank.
+        if (selected.length >= 3 || bank[gem] < 1) return prev;
+        return { type: 'selectingGems', selected: [...selected, gem] };
       });
     },
-    [isHumanTurn],
+    [game, isHumanTurn],
   );
 
   const confirmTakeGems = useCallback(() => {
@@ -194,6 +221,7 @@ export function useGame(): UseGameReturn {
     legalMoves,
     aiPlayers,
     isHumanTurn,
+    affordableCardIds,
     actions: {
       startGame,
       selectGem,

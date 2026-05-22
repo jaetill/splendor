@@ -46,7 +46,7 @@ function SetupScreen({ onStart }: { onStart: (humans: number, bots: number) => v
 }
 
 export default function App() {
-  const { game, action, aiPlayers, isHumanTurn, actions } = useGame();
+  const { game, action, aiPlayers, isHumanTurn, affordableCardIds, actions } = useGame();
 
   if (!game) {
     return <SetupScreen onStart={actions.startGame} />;
@@ -101,6 +101,7 @@ export default function App() {
               playerIndex={i}
               name={playerName(i)}
               isCurrentPlayer={i === game.currentPlayer && game.phase !== 'ended'}
+              affordableCardIds={affordableCardIds}
               onSelectReservedCard={isHumanTurn ? actions.selectCard : undefined}
             />
           ))}
@@ -112,6 +113,7 @@ export default function App() {
           <CardGrid
             game={game}
             action={action}
+            affordableCardIds={affordableCardIds}
             onSelectCard={actions.selectCard}
             onReserveFromDeck={actions.reserveFromDeck}
           />

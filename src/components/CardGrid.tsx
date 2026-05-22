@@ -5,13 +5,20 @@ import CardDisplay from './CardDisplay';
 interface CardGridProps {
   game: GameState;
   action: ActionState;
+  affordableCardIds: ReadonlySet<string>;
   onSelectCard: (card: Card) => void;
   onReserveFromDeck: (tier: 1 | 2 | 3) => void;
 }
 
 const TIERS = [3, 2, 1] as const; // Display tier 3 at top
 
-export default function CardGrid({ game, action, onSelectCard, onReserveFromDeck }: CardGridProps) {
+export default function CardGrid({
+  game,
+  action,
+  affordableCardIds,
+  onSelectCard,
+  onReserveFromDeck,
+}: CardGridProps) {
   const selectedCardId = action.type === 'cardAction' ? action.card.id : null;
 
   return (
@@ -38,6 +45,7 @@ export default function CardGrid({ game, action, onSelectCard, onReserveFromDeck
                 card={card}
                 onClick={() => onSelectCard(card)}
                 highlight={card.id === selectedCardId}
+                affordable={affordableCardIds.has(card.id)}
               />
             ))}
             {/* Empty slots */}
