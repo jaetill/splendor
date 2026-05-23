@@ -1,22 +1,13 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // Served at the apex of splendor.jaetill.com, so assets resolve from '/'.
-  base: '/',
+  base: '/splendor/',
   build: {
     // Emit source maps so Sentry can deobfuscate. deploy.yml uploads them and
-    // strips from dist/ before publishing.
+    // strips from dist/ before publishing to GitHub Pages.
     sourcemap: true,
-    rollupOptions: {
-      // Two HTML entries: the game (index.html) and the OAuth redirect target.
-      input: {
-        main: fileURLToPath(new URL('./index.html', import.meta.url)),
-        callback: fileURLToPath(new URL('./callback.html', import.meta.url)),
-      },
-    },
   },
-});
+})
