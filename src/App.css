@@ -214,6 +214,7 @@ body {
 /* ── Gem tokens ───────────────────────────────────────────────────────────── */
 
 .gem-token {
+  position: relative;
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -227,6 +228,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.gem-token__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 3px 5px;
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px var(--bg);
 }
 
 .gem-token:hover:not(:disabled) {
@@ -277,6 +292,18 @@ body {
 .gem-bank__hint {
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+.gem-bank__hint--warn {
+  color: #f1c40f;
+  font-weight: 600;
+}
+
+.gem-bank__instructions {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-style: italic;
 }
 
 /* ── Card grid ────────────────────────────────────────────────────────────── */

@@ -46,7 +46,8 @@ function SetupScreen({ onStart }: { onStart: (humans: number, bots: number) => v
 }
 
 export default function App() {
-  const { game, action, aiPlayers, isHumanTurn, affordableCardIds, actions } = useGame();
+  const { game, action, aiPlayers, isHumanTurn, affordableCardIds, confirmError, actions } =
+    useGame();
 
   if (!game) {
     return <SetupScreen onStart={actions.startGame} />;
@@ -120,6 +121,7 @@ export default function App() {
           <GemBank
             game={game}
             action={action}
+            confirmError={confirmError}
             onSelectGem={actions.selectGem}
             onConfirm={actions.confirmTakeGems}
             onCancel={actions.cancelAction}

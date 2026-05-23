@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Card, GameState, Move, RegularGem } from '../game/types';
+import { REGULAR_GEMS } from '../game/types';
 import { applyMove, createGame, isLegalMove } from '../game/engine';
 import { getLegalMoves } from '../game/moves';
 import { randomAI } from '../ai/random';
@@ -41,6 +42,8 @@ export interface UseGameReturn {
   isHumanTurn: boolean;
   /** Ids of board/reserved cards the current human player can recruit right now. */
   affordableCardIds: ReadonlySet<string>;
+  /** Why the staged gem take can't be confirmed (null when it's a legal move). */
+  confirmError: string | null;
   actions: GameActions;
   moveLog: Move[];
 }
@@ -72,6 +75,25 @@ export function useGame(): UseGameReturn {
     }
     return ids;
   }, [game, isHumanTurn]);
+
+  // Explain why a staged gem selection can't be taken yet (10-token cap, an
+  // incomplete take-3, or a take-2 with too few in the bank). null = good to go.
+  const confirmError = useMemo<string | null>(() => {
+    if (!game || action.type !== 'selectingGems' || action.selected.length === 0) return null;
+    const sel = action.selected;
+    const me = game.players[game.currentPlayer];
+    const heldNonGreen = Object.values(me.gems).reduce((a, b) => a + b, 0) - me.gems.green;
+
+    if (sel.length === 2 && sel[0] === sel[1]) {
+      if (game.gems[sel[0]] < 4) return 'Need 4+ of a color in the bank to take two.';
+      if (heldNonGreen + 2 > 10) return 'You can hold at most 10 tokens.';
+      return null;
+    }
+    const availableColors = REGULAR_GEMS.filter((g) => game.gems[g] >= 1).length;
+    if (sel.length < Math.min(3, availableColors)) return 'Pick 3 different colors.';
+    if (heldNonGreen + sel.length > 10) return 'You can hold at most 10 tokens.';
+    return null;
+  }, [game, action]);
 
   const doMove = useCallback((state: GameState, move: Move): GameState => {
     const next = applyMove(state, move);
@@ -222,6 +244,7 @@ export function useGame(): UseGameReturn {
     aiPlayers,
     isHumanTurn,
     affordableCardIds,
+    confirmError,
     actions: {
       startGame,
       selectGem,

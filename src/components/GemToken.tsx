@@ -25,6 +25,8 @@ interface GemTokenProps {
   count: number;
   onClick?: () => void;
   selected?: boolean;
+  /** How many of this color are staged (2 shows a ×2 take-2 badge). */
+  selectedCount?: number;
   disabled?: boolean;
   size?: 'sm' | 'md';
 }
@@ -34,6 +36,7 @@ export default function GemToken({
   count,
   onClick,
   selected,
+  selectedCount = 0,
   disabled,
   size = 'md',
 }: GemTokenProps) {
@@ -51,6 +54,7 @@ export default function GemToken({
       title={`${GEM_LABELS[gem]} (${count})`}
     >
       <span className="gem-token__count">{count}</span>
+      {selectedCount === 2 && <span className="gem-token__badge">×2</span>}
     </button>
   );
 }
