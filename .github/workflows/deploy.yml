@@ -1,17 +1,22 @@
-name: Deploy to GitHub Pages
+name: Deploy to S3 + CloudFront
 
 on:
   push:
     branches: [main]
 
+# OIDC: assume the splendor-github-deploy role (no long-lived keys).
 permissions:
-  contents: read
-  pages: write
   id-token: write
+  contents: read
 
 concurrency:
-  group: pages
+  group: deploy-splendor
   cancel-in-progress: true
+
+env:
+  AWS_REGION: us-east-2
+  S3_BUCKET: jaetill-splendor
+  CLOUDFRONT_DISTRIBUTION_ID: E15CORI71INNUD
 
 jobs:
   build-and-deploy:
@@ -20,9 +25,6 @@ jobs:
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
       SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -37,6 +39,7 @@ jobs:
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           VITE_DEPLOY_ENV: production
           VITE_RELEASE_VERSION: ${{ github.sha }}
+
       - name: Upload source maps to Sentry
         if: env.SENTRY_AUTH_TOKEN != ''
         uses: getsentry/action-release@v1
@@ -46,6 +49,7 @@ jobs:
           sourcemaps: ./dist
           set_commits: auto
           finalize: true
+
       - name: Strip source maps from dist/ before publish
         if: always()
         run: |
@@ -53,12 +57,26 @@ jobs:
           find dist -name '*.js' -type f -exec sed -i '/\/\/# sourceMappingURL=/d' {} +
           find dist -name '*.css' -type f -exec sed -i '/\/\*# sourceMappingURL=/d' {} +
 
-
-      - uses: actions/configure-pages@v4
-
-      - uses: actions/upload-pages-artifact@v3
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
-          path: dist
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - uses: actions/deploy-pages@v4
-        id: deployment
+      - name: Sync hashed assets (immutable, long cache)
+        # No --delete: hashed asset names make stale files harmless, and it avoids
+        # ever wiping anything unexpected in the bucket.
+        run: |
+          aws s3 sync dist/ "s3://${S3_BUCKET}/" \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "index.html" --exclude "callback.html"
+
+      - name: Upload HTML entries (no-cache)
+        run: |
+          aws s3 cp dist/index.html "s3://${S3_BUCKET}/index.html" --cache-control "no-cache"
+          aws s3 cp dist/callback.html "s3://${S3_BUCKET}/callback.html" --cache-control "no-cache"
+
+      - name: Invalidate CloudFront HTML
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
+            --paths "/index.html" "/callback.html"
