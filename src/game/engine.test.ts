@@ -425,6 +425,37 @@ describe('applyMove — recruit', () => {
   });
 });
 
+// ── isLegalMove: pass ────────────────────────────────────────────────────────
+
+describe('isLegalMove — pass', () => {
+  it('rejects pass when take3 moves are available (standard starting bank)', () => {
+    // Default state has gems: orange/purple/red/blue/yellow = 4 each, gray = 5, green = 2.
+    // At least 3 regular colors available → take3 exists → pass must be illegal.
+    const s = state();
+    expect(isLegalMove(s, { type: 'pass' })).toBe(false);
+  });
+
+  it('rejects pass when only reserve moves exist', () => {
+    // Drain bank to 0 for all gems so no take moves; player < 3 reserved; board has cards.
+    const boardCard = card({ id: 'c1', tier: 1, cost: { orange: 99 } }); // unaffordable
+    const s = state({
+      gems: { orange: 0, purple: 0, red: 0, blue: 0, yellow: 0, gray: 0, green: 0 },
+      board: { tier1: [boardCard], tier2: [], tier3: [] },
+    });
+    expect(isLegalMove(s, { type: 'pass' })).toBe(false);
+  });
+
+  it('accepts pass when no other move is available', () => {
+    // Empty bank, empty board, empty decks, empty reserved — truly stuck.
+    const s = state({
+      gems: { orange: 0, purple: 0, red: 0, blue: 0, yellow: 0, gray: 0, green: 0 },
+      board: { tier1: [], tier2: [], tier3: [] },
+      decks: { tier1: [], tier2: [], tier3: [] },
+    });
+    expect(isLegalMove(s, { type: 'pass' })).toBe(true);
+  });
+});
+
 // ── Phase transitions & win detection ─────────────────────────────────────────
 
 describe('phase transitions', () => {
@@ -461,6 +492,7 @@ describe('phase transitions', () => {
       phase: 'lastRound',
       lastRoundTriggerPlayer: 0,
       currentPlayer: 1,
+      gems: gems(), // drained bank → pass is the only legal move
       players: [fullyEquippedPlayer(16), player()],
     });
     const after = applyMove(s, { type: 'pass' });
@@ -473,6 +505,7 @@ describe('phase transitions', () => {
       phase: 'lastRound',
       lastRoundTriggerPlayer: 0,
       currentPlayer: 1,
+      gems: gems(),
       players: [fullyEquippedPlayer(16), fullyEquippedPlayer(18)],
     });
     const after = applyMove(s, { type: 'pass' });
@@ -484,6 +517,7 @@ describe('phase transitions', () => {
       phase: 'lastRound',
       lastRoundTriggerPlayer: 0,
       currentPlayer: 1,
+      gems: gems(),
       players: [fullyEquippedPlayer(16), fullyEquippedPlayer(16)],
       avengersAssembleTile: 1, // worth +3 to player 1
     });
@@ -497,6 +531,7 @@ describe('phase transitions', () => {
       phase: 'lastRound',
       lastRoundTriggerPlayer: 0,
       currentPlayer: 1,
+      gems: gems(),
       players: [
         fullyEquippedPlayer(16, { recruited: [c('a'), c('b'), c('c')] }),
         fullyEquippedPlayer(16, { recruited: [c('d'), c('e')] }), // fewer cards → wins
@@ -512,6 +547,7 @@ describe('phase transitions', () => {
       phase: 'lastRound',
       lastRoundTriggerPlayer: 0,
       currentPlayer: 1,
+      gems: gems(),
       players: [player({ points: 5 }), player({ points: 12 })],
     });
     const after = applyMove(s, { type: 'pass' });

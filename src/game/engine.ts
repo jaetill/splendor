@@ -265,6 +265,42 @@ export function createGame(numPlayers: number): GameState {
 
 // ── isLegalMove ──────────────────────────────────────────────────────────────
 
+/** Returns true when the current player has at least one non-pass move. */
+function hasAnyNonPassMove(state: GameState): boolean {
+  const player = state.players[state.currentPlayer];
+  const bank = state.gems;
+  const ngc = nonGreenCount(player);
+
+  // Any take3? Must take exactly min(3, available) gems, so check the gem limit accordingly.
+  const available = REGULAR_GEMS.filter((g) => bank[g] >= 1);
+  const takeN = Math.min(3, available.length);
+  if (takeN > 0 && ngc + takeN <= 10) return true;
+
+  // Any take2?
+  if (ngc + 2 <= 10 && REGULAR_GEMS.some((g) => bank[g] >= 4)) return true;
+
+  // Any reserve?
+  if (player.reserved.length < 3) {
+    const hasBoard =
+      state.board.tier1.length > 0 || state.board.tier2.length > 0 || state.board.tier3.length > 0;
+    const hasDeck =
+      state.decks.tier1.length > 0 || state.decks.tier2.length > 0 || state.decks.tier3.length > 0;
+    if (hasBoard || hasDeck) return true;
+  }
+
+  // Any recruit?
+  const candidates = [
+    ...state.board.tier1,
+    ...state.board.tier2,
+    ...state.board.tier3,
+    ...player.reserved,
+  ];
+  if (candidates.some((card) => computePayment(card, player.gems, player.bonuses) !== null))
+    return true;
+
+  return false;
+}
+
 export function isLegalMove(state: GameState, move: Move): boolean {
   if (state.phase === 'ended') return false;
 
@@ -313,7 +349,7 @@ export function isLegalMove(state: GameState, move: Move): boolean {
     }
 
     case 'pass':
-      return true;
+      return !hasAnyNonPassMove(state);
 
     default:
       return false;
