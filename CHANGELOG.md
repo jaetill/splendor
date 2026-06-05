@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/jaetill/splendor/compare/v1.0.0...v1.0.1) (2026-06-05)
+
+
+### Bug Fixes
+
+* **app:** add CSP and referrer-policy meta security headers ([#24](https://github.com/jaetill/splendor/issues/24)) ([#38](https://github.com/jaetill/splendor/issues/38)) ([6834195](https://github.com/jaetill/splendor/commit/6834195d0c1b02eabc6d0f6aa710a373e98d0e8c))
+
 ## 1.0.0 (2026-05-25)
 
 
