@@ -1,22 +1,22 @@
-## Dependency Watch (2026-06-08)
+## Dependency Watch (2026-06-15)
 
-### `package.json` (root)
+### Manifest: `package.json` (root)
 
-**Audit (production dependencies)**
+#### Security Audit (production dependencies only)
 
-No vulnerabilities found across 10 production dependencies.
+No vulnerabilities found across 10 production dependencies (531 total including dev/optional/peer).
 
-**Outdated packages**
+#### Outdated Check
 
-All production dependencies are current (installed version matches latest):
+`npm outdated` surfaced three entries, but in each case `wanted == latest` — the semver range in `package.json` already resolves to the latest published version. No version bumps are available beyond what is already declared.
 
-| Package | Declared Range | Latest |
-|---|---|---|
-| `@sentry/browser` | `^10.53.1` | `10.56.0` |
-| `react` | `^19.2.4` | `19.2.7` |
-| `react-dom` | `^19.2.4` | `19.2.7` |
+| Package | Declared range | Latest | Classification |
+|---|---|---|---|
+| `react` | `^19.2.4` | 19.2.7 | Within range — no action |
+| `react-dom` | `^19.2.4` | 19.2.7 | Within range — no action |
+| `@sentry/browser` | `^10.53.1` | 10.58.0 | Within range — no action |
 
-> Note: `npm outdated` reports these as MISSING because `node_modules` is not installed in the CI check environment, not because the versions are stale. `wanted` == `latest` for all packages confirms no update is required.
+All three are minor/patch bumps fully covered by the `^` range already pinned; a clean `npm install` will pull the latest satisfying versions automatically.
 
 ---
 
