@@ -10,8 +10,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # ceiling for the reusable's publish job; generate job downgrades to read
-  id-token: write
+  contents: write # ceiling for the reusable's publish job; generate job downgrades to read
+  id-token: write # claude-code-action OIDC in the generate job
+  # issues: write intentionally absent — ADR-0045 retired the rolling dep-watch tracking
+  # issue; the reusable now publishes docs/dependency-report.md to reports/dep-watch branch
+  # via a deterministic push job. No issue CRUD in this workflow.
 
 jobs:
   dep-watch:
