@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/jaetill/splendor/compare/v1.0.0...v1.0.1) (2026-06-18)
+
+
+### Bug Fixes
+
+* **app:** add CSP and referrer-policy meta security headers ([#24](https://github.com/jaetill/splendor/issues/24)) ([#38](https://github.com/jaetill/splendor/issues/38)) ([6834195](https://github.com/jaetill/splendor/commit/6834195d0c1b02eabc6d0f6aa710a373e98d0e8c))
+* **ci:** document that issues: write is intentionally absent ([#49](https://github.com/jaetill/splendor/issues/49)) ([#51](https://github.com/jaetill/splendor/issues/51)) ([a8a42a7](https://github.com/jaetill/splendor/commit/a8a42a7c4918e8f05b99722f23b4b720ebe57c6b))
+* **ci:** scope reusable secrets explicitly (ADR-0048) ([#52](https://github.com/jaetill/splendor/issues/52)) ([cdbdb10](https://github.com/jaetill/splendor/commit/cdbdb1003d2fbe7381d791204ef71121d51b3d6e))
+
 ## 1.0.0 (2026-05-25)
 
 
