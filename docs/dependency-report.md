@@ -1,22 +1,22 @@
-## Dependency Watch (2026-06-15)
+## Dependency Watch (2026-06-22)
 
-### Manifest: `package.json` (root)
+### `package.json` (root)
 
-#### Security Audit (production dependencies only)
+#### Security Audit (production dependencies)
 
-No vulnerabilities found across 10 production dependencies (531 total including dev/optional/peer).
+No vulnerabilities found across 10 production dependencies.
 
-#### Outdated Check
+#### Outdated Packages
 
-`npm outdated` surfaced three entries, but in each case `wanted == latest` — the semver range in `package.json` already resolves to the latest published version. No version bumps are available beyond what is already declared.
+##### Minor / Patch — Low Priority (batch in monthly sweep)
 
-| Package | Declared range | Latest | Classification |
-|---|---|---|---|
-| `react` | `^19.2.4` | 19.2.7 | Within range — no action |
-| `react-dom` | `^19.2.4` | 19.2.7 | Within range — no action |
-| `@sentry/browser` | `^10.53.1` | 10.58.0 | Within range — no action |
+| Package | Installed (range) | Wanted | Latest | Change |
+|---|---|---|---|---|
+| `@sentry/browser` | `^10.53.1` | `10.59.0` | `10.59.0` | minor (10.53 → 10.59) |
+| `react` | `^19.2.4` | `19.2.7` | `19.2.7` | patch (19.2.4 → 19.2.7) |
+| `react-dom` | `^19.2.4` | `19.2.7` | `19.2.7` | patch (19.2.4 → 19.2.7) |
 
-All three are minor/patch bumps fully covered by the `^` range already pinned; a clean `npm install` will pull the latest satisfying versions automatically.
+All three packages are within their declared semver ranges (`^`); `npm install` will resolve to the latest compatible version. No breaking-change risk. Bundle in the next monthly maintenance sweep.
 
 ---
 
