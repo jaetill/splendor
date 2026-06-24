@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/jaetill/splendor/compare/v1.0.1...v1.0.2) (2026-06-24)
+
+
+### Bug Fixes
+
+* **ci:** drop unused IMPLEMENTER_PAT forwarding from implementer caller (refs [#363](https://github.com/jaetill/splendor/issues/363)) ([#53](https://github.com/jaetill/splendor/issues/53)) ([12b17b0](https://github.com/jaetill/splendor/commit/12b17b06b9837fdc1bfb1be64fb384298c0c4e2b))
+
 ## [1.0.1](https://github.com/jaetill/splendor/compare/v1.0.0...v1.0.1) (2026-06-18)
 
 
